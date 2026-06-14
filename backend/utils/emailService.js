@@ -3,42 +3,50 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY.trim();
-const SENDER_EMAIL = process.env.SENDER_USER.trim();
+const SENDER_EMAIL = process.env.SENDER_EMAIL.trim();
 
 //reusable email sender function
 
-const sendEmail = async (to, subject, htmlContent) => {
+const sendEmail = async ({ to, subject, htmlContent }) => {
     try {
         if (!BREVO_API_KEY || !SENDER_EMAIL) {
             throw new Error("Email service not configured properly");
         }
 
-        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-            method: "POST",
-            headers:{
-                "api-key": BREVO_API_KEY,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-           },
-            body:JSON.stringify({
-                sender: { name: "JobPortal", email: SENDER_EMAIL },
-                to: [{ email: to }],
-                subject,
-                htmlContent
-            })
-        })
+        const response = await fetch(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                method: "POST",
+                headers: {
+                    "api-key": BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify({
+                    sender: {
+                        name: "JobPortal",
+                        email: SENDER_EMAIL
+                    },
+                    to,
+                    subject,
+                    htmlContent
+                })
+            }
+        );
 
         const result = await response.json();
+
         if (!response.ok) {
-            throw new Error(result.message || "Brevo api error");
+            throw new Error(result.message || "Brevo API error");
         }
+
         return result;
 
     } catch (error) {
         console.error("Error sending email:", error);
         throw error;
     }
-}
+};
 
 //for otp
 
@@ -61,7 +69,7 @@ const otpTemplate = (title, name, otp, message) => `
 
 export const sendVerificationEmail = async (to, name, otp) => {
     return sendEmail({
-        to: [{ email, name }],
+        to: [{ email:to, name }],
         subject: "Your verification code - JobPortal",
         htmlContent: otpTemplate("Email Verification", name, otp, "Please use the following OTP to verify your email address:")
     })
@@ -71,7 +79,7 @@ export const sendVerificationEmail = async (to, name, otp) => {
 
 export const sendForgotPasswordEmail = async (to, name, otp) => {
     return sendEmail({
-        to: [{ email, name }],
+        to: [{ email:to, name }],
         subject: "Your password reset code - JobPortal",
         htmlContent: otpTemplate("Password Reset", name, otp, "Please use the following OTP to reset your password:")
     })

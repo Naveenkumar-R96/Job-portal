@@ -1,12 +1,12 @@
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { sendForgotPasswordEmail } from "../utils/emailService.js";
+import { sendForgotPasswordEmail ,sendVerificationEmail} from "../utils/emailService.js";
 //to register a user
 
 export const register = async (req, res) => {
     try {
-        const { name, email, password, otp } = req.body;
+        const { name, email, password, role } = req.body;
         const userExist = await User.findOne({ email });
 
         if (userExist) {
@@ -115,7 +115,7 @@ export const verifyEmail = async (req, res) => {
             })
         }
 
-        const user = await User.findOne({ email, verificationOTP: otp, verificationOTPExpires: { $gt: Date.now() } });
+        const user = await User.findOne({ email, verificationOTP: otp, verificationOTPExpiry: { $gt: Date.now() } });
 
         if (!user) {
             return res.status(400).json({
@@ -154,9 +154,9 @@ export const forgotPassword = async (req, res) => {
             })
         }
 
-        const user = await findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
-            return res.staus(400).json({
+            return res.status(400).json({
                 success: false,
                 message: "Email not found"
             })
@@ -166,7 +166,9 @@ export const forgotPassword = async (req, res) => {
         const resetOTPExpires = Date.now() + 10 * 60 * 1000;
 
         user.resetPasswordOTP = resetOTP;
-        user.resetPasswordOTPExpires = resetOTPExpires;
+        user.resetPasswordOTPExpiry = resetOTPExpires;
+
+        await user.save();   
 
         try {
             await sendForgotPasswordEmail(email, user.name, resetOTP);
@@ -214,6 +216,7 @@ export const resetPassword = async (req, res) => {
         const hashedPassword=await bcrypt.hash(newPassword,10);
         user.password=hashedPassword;
         user.resetPasswordOTPExpiry=undefined;
+        user.resetPasswordOTP=undefined;
 
         await user.save();
 
