@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
+import cloudinary from "../config/cloudinary.js";
 //get user profile
 
 export const getProfile = async (req, res) => {
@@ -49,16 +50,102 @@ export const updateProfile = async (req, res) => {
 
             const uploadResult = await uploadToCloudinary(req.file.buffer, "jobportal/resume", resourceType, sanitizedFileName);
 
-            if(uploadResult){
+            if (uploadResult) {
                 updateData.resume = uploadResult.secure_url;
                 updateData.resumePublicId = uploadResult.public_id;
             }
         }
+
+        const user = await User.findByIdAndUpdate(req.user.id, updateData, { returnDocument: "after" }).select("-password");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user
+        });
     }
     catch (err) {
         res.status(500).json({
             success: false,
             message: "Internal server error"
+        })
+    }
+}
+
+//helper function to extract public id from cloudinary url
+
+const getPublicIdFromUrl = (url, resourceType) => {
+    try {
+        const parts = url.split('/');
+        const uploadIndex = parts.indexOf('upload');
+        if (uploadIndex === -1) return null;
+        const pathAfterVersion = parts.slice(uploadIndex + 2).join("/");
+        if (resourceType === "raw") return pathAfterVersion;
+
+        return pathAfterVersion.substring(0, pathAfterVersion.lastIndexOf(".")) || pathAfterVersion;
+    }
+    catch (e) {
+        return null;
+    }
+}
+
+// to get user resume
+
+export const getResume = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user || !user.resume) {
+            return res.status(404).json({
+                success: false,
+                message: "Resume not found"
+            })
+        }
+
+        const resourceType = user.resume.includes('/raw/0') ? "raw" : "image";
+        const publicId = user.resumePublicId || getPublicIdFromUrl(user.resume, resourceType);
+
+        if (!publicId) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid resume reference"
+            })
+        }
+
+        if (resourceType === "raw") {
+            const fileName = publicId.split("/").pop() || "resume.pdf";
+            const format = fileName.includes(".") ? fileName.split(".").pop().toLowerCase() : "pdf";
+
+            const signedUrl = cloudinary.utils.private_download_url(publicId, format, {
+                resource_type: "raw",
+                type: "upload",
+                secure: true,
+                expires_at: Math.floor(Date.now() / 1000) + 300, // 5 minutes
+            });
+        }
+
+        //for images
+
+        const signedUrl = cloudinary.url(publicId, {
+            resource_type: "image",
+            type: "upload",
+            secure: true,
+            sign_url: true,
+            expires_at: Math.floor(Date.now() / 1000) + 300,
+          });
+
+          return res.redirect(signedUrl);
+    }
+    catch (err) {
+        console.log("Resume Access Error :", err.message);
+        return res.status(500).json({
+            success:false,
+            message:"could not access resume"
         })
     }
 }

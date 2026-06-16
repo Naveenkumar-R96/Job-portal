@@ -1,6 +1,6 @@
-import cloudinary from "../config/cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
-export const uploadToCloudinary = (fileBuffer, folderName, resourceType = "auto" = null) => {
+export const uploadToCloudinary = (fileBuffer, folderName, resourceType = null) => {
     return new Promise((resolve, reject) => {
         const options = {
             folder: folderName,
