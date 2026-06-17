@@ -25,7 +25,7 @@ export const getProfile = async (req, res) => {
     }
 }
 
-//update user profile
+//to upload resume for the job seeker
 
 export const updateProfile = async (req, res) => {
     try {

@@ -23,11 +23,12 @@ export const getCompanies=async (req,res)=>{
 export const addCompany =async (req,res)=>{
     try{
         const {website}=req.body;
+        console.log(req.user);
         if(!website){
-            res.status(400).json({
+            return res.status(400).json({
                 success:false,
                 message:"Website is required"
-            })
+            });
         }
         let logoUrl=" ";
         if(req.file){
@@ -37,7 +38,7 @@ export const addCompany =async (req,res)=>{
         const company=await Company.create({
             logo:logoUrl,
             website,
-            createdBy:req.user._id
+            createdBy:req.user.id
         })
         res.status(201).json({
             success:true,
