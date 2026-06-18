@@ -1,0 +1,119 @@
+import React, { useEffect } from "react";
+import { navbarStyles as s } from "../assets/dummySyles";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Home, List, Briefcase, Building, UserCheck } from "react-feather";
+
+const Navbar = ({ logoSrc, brandName = "Job Portal", onNavigate }) => {
+  const NAV_ITEMS = [
+    { key: "dashboard", label: "Dashboard", Icon: Home },
+    { key: "jobs", label: "Jobs", Icon: Briefcase },
+    { key: "listJob", label: "List Job", Icon: List },
+    { key: "company", label: "Companies", Icon: Building },
+    {
+      key: "companyQuestions",
+      label: "Company Questions",
+      Icon: Building,
+      dropdown: [{ key: "listCompanyQ", label: "List Company Questions" }],
+    },
+    {
+      key: "roleQuestions",
+      label: "Role Questions",
+      Icon: UserCheck,
+      dropdown: [{ key: "listRoleQ", label: "List Role Questions" }],
+    },
+  ];
+
+  const ROUTES = {
+    dashboard: "/",
+    company: "/companies",
+    jobs: "/addjobs",
+    listJob: "/list/jobs",
+    companyQuestions: "/company-questions",
+    listCompanyQ: "/list/company-questions",
+    roleQuestions: "/role-questions",
+    listRoleQ: "/list/role-questions",
+    login: "/login",
+  };
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    setUser(storedUser ? JSON.parse(storedUser) : null);
+  }, [location.pathname]);
+
+  const pathtoKey = (pathname) => {
+    const found = Object.entries(ROUTES).find(([key, path]) => {
+      if (pathname === "/") return pathname === "/";
+      return (
+        pathname === path ||
+        pathname.startsWith(path + "/") ||
+        pathname.startsWith(path)
+      );
+    });
+    return found ? found[0] : "dashboard";
+  };
+
+  const [active, setActive] = useState(pathToKey(location.pathname));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navContainerRef = useRef(null);
+  const itemRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  const [openDropdownKey, setOpenDropdownKey] = useState(null);
+  const navCloseTimeoutRef = useRef(null);
+
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const isLGOnly = windowWidth >= 1024 && windowWidth < 1280;
+
+  useEffect(() => {
+    if (!isLGOnly) return;
+    const handleDocClick = (e) => {
+      const container = navContainerRef.current;
+      if (!container) return;
+      if (!container.contains(e.target)) {
+        setOpenDropdownKey(null);
+      }
+    };
+    document.addEventListener("mousedown", handleDocClick);
+    return () => document.removeEventListener("mousedown", handleDocClick);
+  }, [isLGOnly]);
+
+  return (
+    <header className={s.header}>
+      <nav className={s.nav}>
+        <div className={s.navContainer}>
+          <div className={s.navContent}>
+            {/* logo */}
+            <div
+              className={s.logoContainer}
+              onClick={() => handleNavigate("dashboard")}
+            >
+              <div className={s.logoWrapper}>
+                {logoToUse ? (
+                  <img src={logoToUse} alt="Logo" />
+                ) : (
+                  <span className={s.logoFallback}>{brandName[0]}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+  );
+};
+
+export default Navbar;
