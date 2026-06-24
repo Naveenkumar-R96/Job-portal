@@ -104,7 +104,7 @@ export const getApplicants = async (req, res) => {
 export const getUserApplications = async (req, res) => {
     try {
         const userId = req.user.id;
-        const applications = await Application.find({ user: userId }).populate("jobs").sort({
+        const applications = await Application.find({ user: userId }).populate("job").sort({
             createdAt: -1
         });
         const validApplications = applications.filter(app => app.job != null);

@@ -119,7 +119,7 @@ export const updateInterviewCompany = async (req, res) => {
         res.status(200).json({ success: true, company });
 
     } catch (err) {
-        handleError(res, err);
+        handleError(req, res);
     }
 };
 
@@ -134,7 +134,7 @@ export const deleteInterviewCompany = async (req, res) => {
             return res.status(404).json({ message: "Company not found" });
         }
         await InterviewQuestion.deleteMany({ company: companyId });
-        await company.remove();
+        await company.deleteOne();
         res.status(200).json({ success: true, message: "Company deleted successfully" });
     } catch (error) {
         handleError(req, res);
@@ -253,7 +253,7 @@ export const updateInterviewRole = async (req, res) => {
         res.status(200).json({ success: true, role });
 
     } catch (err) {
-        handleError(res, err);
+        handleError(req, res);
     }
 };
 
@@ -267,7 +267,7 @@ export const deleteInterviewRole = async (req, res) => {
             return res.status(404).json({ message: "Role not found" });
         }
         await RoleQuestion.deleteMany({ roleId });
-        await role.remove();
+        await role.deleteOne();
         res.status(200).json({ success: true, message: "Role deleted successfully" });
     } catch (error) {
         handleError(req, res);

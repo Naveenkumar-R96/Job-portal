@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY.trim();
-const SENDER_EMAIL = process.env.SENDER_EMAIL.trim();
+const BREVO_API_KEY = (process.env.BREVO_API_KEY || "").trim();
+const SENDER_EMAIL = (process.env.SENDER_EMAIL || "").trim();
 
 //reusable email sender function
 

@@ -1,6 +1,6 @@
 import cloudinary from "../config/cloudinary.js";
 
-export const uploadToCloudinary = (fileBuffer, folderName, resourceType = null) => {
+export const uploadToCloudinary = (fileBuffer, folderName, resourceType = null, publicId = null) => {
     return new Promise((resolve, reject) => {
         const options = {
             folder: folderName,
@@ -15,7 +15,7 @@ export const uploadToCloudinary = (fileBuffer, folderName, resourceType = null) 
                 options.public_id = publicId;
             }
             else{
-                options.public_id = publicId.includes(".")? publicId.split(0,-1).join("."):publicId;
+                options.public_id = publicId.includes(".") ? publicId.slice(0, publicId.lastIndexOf(".")) : publicId;
             }
         }
 
@@ -28,7 +28,7 @@ export const uploadToCloudinary = (fileBuffer, folderName, resourceType = null) 
                 }
                 console.log("clodinary uplad result",result);
                 resolve({
-                    secureu_url:result.secure_url,
+                    secure_url:result.secure_url,
                     public_id:result.public_id,
                 });
             }

@@ -127,6 +127,7 @@ export const getResume = async (req, res) => {
                 secure: true,
                 expires_at: Math.floor(Date.now() / 1000) + 300, // 5 minutes
             });
+            return res.redirect(signedUrl);
         }
 
         //for images

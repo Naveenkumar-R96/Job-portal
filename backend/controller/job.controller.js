@@ -158,7 +158,7 @@ export const getDashboardStats = async (req, res) => {
         const totalApplicationResults = await Application.aggregate([
             {
                 $lookup: {
-                    from: "user",
+                    from: "users",
                     localField: "user",
                     foreignField: "_id",
                     as: "userRecord"

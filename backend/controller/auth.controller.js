@@ -203,7 +203,7 @@ export const resetPassword = async (req, res) => {
         const user = await User.findOne({
             email,
             resetPasswordOTP: otp,
-            resetPasswordOTPExpires: { $gt: Date.now() }
+            resetPasswordOTPExpiry: { $gt: Date.now() }
         });
         if(!user){
             return res.status(400).json({
