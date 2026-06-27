@@ -526,6 +526,7 @@ const Navbar = ({ logoSrc, brandName = "Job Portal", onNavigate }) => {
           )}
         </div>
       </nav>
+      <style>{s.animations}</style>
     </header>
   );
 };
